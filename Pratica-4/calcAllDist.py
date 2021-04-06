@@ -1,43 +1,52 @@
 # Integrantes do grupo:
 # Vinícius Henrique Almeida Praxedes
+# # Mateus Pereira
 # Mateus Damaceno
-# Mateus Pereira
 
 import math
 import csv
 
-# fileName = './urbanGB.all/urbanGB.txt'
-# separator = ','
+# # fileName = './Pratica-4/urbanGB.all/urbanGB.txt'
+# # separator = ','
+# # colDist = [0, 1]
+# ignore1stLine = False
 
 while True:
     fileName = input('Insira o nome do arquivo: ')
+    print('[DEBUG] fileName =', fileName)
     try:
-        file = open(fileName, 'r', newline='', encoding='utf-8')
-        csvFile = csv.reader(file, delimiter=',')
+        file = open(fileName, 'r', encoding='utf-8')
+        print('[DEBUG] file =', file)
         break
-    except FileNotFoundError:
-        print('\nErro, arquivo não encontrado, tente novamente!')
-        print('Obs.: se o arquivo não estiver na mesma pasta deste script, use um caminho relativo ou absoluto\n')
+    except Exception as e:
+        print('\nErro: ' + str(e) + '\nTente novamente! Obs.: se o arquivo não estiver na mesma pasta deste script, use um caminho relativo ou absoluto\n')
 
 while True:
     try:
-        separator = input('Insira o caractere separador do arquivo (apenas aperte enter para usar o padrão de vírgulas): ').strip()
-        # print('[DEBUG] columnMissing =', columnMissing)
+        separator = input('\nInsira o caractere separador do arquivo (apenas aperte enter para usar o padrão de vírgulas): ').strip()
         if separator == '':
             separator =  ','
         else:
             if len(separator) != 1:
                 raise(Exception)
+        csvFile = csv.reader(file, delimiter=separator)
         break
     except Exception:
         print('\nFavor insira um separador de exatamente um caractere!\n')
 
-# while True:
-#     columnMissing = input('Insira o nome da coluna a ter seus valores ausentes preenchidos: ')
-#     if (columnMissing.strip() ==  ''):
-#         print('\nFazor inserir um nome não-vazio\n')
-#     else:
-#         break
+while True:
+    colDist = input('\nInsira as colunas que representam as variáveis a serem consideradas para o cálculo de distância, separadas por espaços e iniciando em um. Apenas aperte enter para usar todas as colunas. (Por exemplo, se as variáveis relevantes forem as da 1ª, 3ª e 6ª colunas, bastaria inserir "1 3 6", sem as aspas): ').strip().split()
+    print('[DEBUG] colDist = ', colDist)
+    if (colDist ==  []):
+        print('[DEBUG] Vazio inserido… usando todas as colunas…')
+        colDist = list(range(len(next(csvFile)))) #Cria uma lista de 0 até o número de colunas - 1
+        file.seek(0)    #Voltando a leitura do arquivo para o começo…
+        break
+    try:
+        colDist = list(map(lambda x: int(x), colDist))
+        break
+    except Exception as e:
+        print('\nErro: ' + str(e) + '\nInsira um conjunto de colunas válido!')
 
 # while True:
 #     missingChar = input('Insira o caractere que representa um valor ausente (apenas aperte enter para considerar uma célula vazia como um valor ausente): ')

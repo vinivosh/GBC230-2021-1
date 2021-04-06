@@ -169,10 +169,8 @@ ehthumbs.db
 Thumbs.db
 
 #Misc
-/Pratica-2/.vscode
-/Pratica-2/Aula2-Pratica.pdf
 /Pratica-2/lung-cancer.data_novo.csv
 /Pratica-2/lung-cancer.data.csv
 /Pratica-2/lung-cancer.names.txt
-/GBC230-2021-1.code-workspace
 /Pratica-4/urbanGB.all
+/.vscode
