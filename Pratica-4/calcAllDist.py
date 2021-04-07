@@ -38,6 +38,7 @@ def rmDupes(list_=[]):  #Remove valores duplicados de listas
 # # separator = ','
 # # colDist = [0, 1]
 # ignore1stLine = False
+# truncateLine = -1
 
 while True:
     filePath = input('Insira o nome do arquivo: ')
@@ -84,15 +85,20 @@ while True:
         ignore1stLine = False
         break
     else:
-        print('\nFazor inserir uma resposta válida!\n')
+        print('\nFazor inserir uma resposta válida!\n')         
 
+print('\nCriando arquivo temporário temp.csv…')
 shutil.copy(filePath, './temp.csv') #Copiando o arquivo para um segundo arquivo auxiliar
+print('\nCriando arquivo Distâncias.csv que terá os resultados…')
 fileAux = open('./temp.csv', 'r', encoding='utf-8')
 csvFileAux = csv.reader(fileAux, delimiter=separator)
 fileDists = open('./Distâncias.csv', 'w', encoding='utf-8')
 
 file.seek(0)
 fileAux.seek(0)
+
+print('\nCalculando todas as distâncias…')
+print('Isso pode demorar muito! N² distâncias serão calculadas, onde N é a quantidade de objetos na base de dados.\n')
 
 i = 0
 j = 0
@@ -102,7 +108,7 @@ for row in csvFile:
         pass
     else:
         rowRelevant = []
-        strToWrite = ''
+        lineToWrite = ''
         for index in colDist:
             rowRelevant.append(row[index])
         for row2 in csvFileAux:
@@ -113,102 +119,19 @@ for row in csvFile:
                 for index in colDist:
                     rowRelevant2.append(row2[index])
                 # print(euclDist(rowRelevant, rowRelevant2))
-                strToWrite += str(euclDist(rowRelevant, rowRelevant2)) + ', '
+                lineToWrite += f'{euclDist(rowRelevant, rowRelevant2)}, '
             j += 1
-    fileDists.write(strToWrite[:-2] + '\n')
+    fileDists.write(f'{lineToWrite[:-2]}\n')
+    # fileDists.write('\n')
+    fileAux.seek(0) #Voltando a leitura do arquivo auxiliar para o início
     i += 1
 
-# file.seek(0)    #Resetando a leitura do arquivo para o começo…
+print('\nConcluído, finalmente! Os resultas se encontram no arquivo Distâncias.csv, localizado na mesma pasta de onde este script foi rodado.')
 
 file.close()
 fileAux.close()
 if os.path.exists('./temp.csv'):
+    print('\nApagando arquivo temporário…')
     os.remove('./temp.csv')
 
-# i = 1
-# while True:
-#     fRow = next(csvFile, None)
-#     # print('[DEBUG]', fRow)
-#     if (fRow == None):
-#         print('\nErro! Linha especificada não encontrada\n')
-#         break #Se fRow for None, chegou ao final do csv e não achamos
-#     if (i == separator):
-#         # print(f'[DEBUG] Linha encontrada! Index de tal linha: {i}')
-#         if columnMissing != None:
-#             foundCol = False    #Boolean que indica se foi encontrada a coluna requerida, se houver uma
-#             colIndex = 0
-#             for col in fRow:
-#                 # print(f'[DEBUG] Coluna sendo analizada: {col}')
-#                 # print('[DEBUG] col == columnMissing?', (col == columnMissing))
-#                 if col == columnMissing:
-#                     # print(f'[DEBUG] Coluna encontrada: {col}\n[DEBUG] Índice de tal coluna: {colIndex}')
-#                     foundCol = True
-#                     break
-#                 colIndex+=1
-#             if (foundCol == False):
-#                 print('\nErro! Coluna especificada não encontrada\n')
-#                 exit()
-#             break   #Linha e coluna corretas encontradas
-#         else:   #Se columnMissing for None então o usuário não especificou a coluna. Será usada a primeira com valores (numéricos) faltando
-#             print('Função à implementar…')
-#             exit()
-#     i+=1
-
-# file.seek(0)    #Volta o arquivo para o começo
-
-# print('\nIniciando contagem da média…\n')
-# avg=0.0; i=1; qnt=0
-# for row in csvFile:
-#     print('[DEBUG] Índice atual:', i)
-#     print('[DEBUG]', row)
-#     if (i==separator):
-#         i += 1
-#         continue
-
-#     try:
-#         if row != []:
-#             avg += float(row[colIndex].replace(',', '.'))
-#             qnt += 1
-#     except ValueError as e:
-#         # print('[DEBUG] DEU RUIM MOFI! Erro =', e)
-#         pass
-
-#     # print(f'[DEBUG] row[colindex] = {row[colIndex]}, avg = {avg}, qnt = {qnt}')
-#     i += 1
-
-# avg /= qnt
-
-# # print(f'[DEBUG] Média final = {avg}')
-
-# # print(f'[DEBUG] Filmename - extensão = {filePath[0:-4]}')
-
-# print('\nIniciando criação do novo arquivo…\n')
-
-# try:
-#     newFile = open((filePath[0:-4]+'_novo.csv'), 'w+', newline='', encoding='utf-8')
-# except Exception as e:
-#     print(f'\nErro, impossível criar novo arquivo: {e}\n')
-#     exit()
-
-# file.seek(0)    #Resetando a leitura do arquivo original…
-
-# i=1
-# for row in csvFile:
-#     print(f'[DEBUG] row = {row}')
-#     if(i == separator):  #Não modificar nada na linha dos nomes…
-#         # print(f"[DEBUG] ', '.join(map(lambda item: item.replace(',', '.'), row)) = {', '.join(map(lambda item: item.replace(',', '.'), row))}")
-#         newFile.write(', '.join(map(lambda item: item.replace(',', '.'), row)) + '\n')
-#         i += 1
-#         continue
-#     newRow = row
-#     if (row != []):
-#         if (row[colIndex] == missingChar):
-#             newRow[colIndex] = str(avg).replace(',','.')
-#         # print(f"[DEBUG] ', '.join(map(lambda item: item.replace(',', '.'), newRow)) = {', '.join(map(lambda item: item.replace(',', '.'), newRow))}")
-#         newFile.write(', '.join(map(lambda item: item.replace(',', '.'), newRow)) + '\n')
-
-#     i += 1
-
-# file.close()
-# newFile.close()
-# print('\nFinalizando programa...\n')
+print('\nFinalizando programa…\n\n')

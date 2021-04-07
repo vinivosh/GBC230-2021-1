@@ -1,12 +1,12 @@
 Integrantes do grupo:
 Vinícius Henrique Almeida Praxedes
-Mateus Damaceno
 Mateus Pereira
+Mateus Damaceno
 
 1. Instale o python 3.x:
 https://www.python.org/downloads/
 
 2. Abra um cmd / powershell na pasta onde o arquivo "calcAllDist.py" está localizado, e rode o comando (sem as aspas):
-"py calcAllDist.py" e siga as instruções no terminal. Alternativamente, você também pode apenas clicar duas vezes no arquivo "preench.py" para abri-lo.
+"py calcAllDist.py" e siga as instruções no terminal. Alternativamente, você também pode apenas clicar duas vezes no arquivo "calcAllDist.py" para abri-lo.
 
 Database usado: https://archive.ics.uci.edu/ml/datasets/UrbanGB%2C+urban+road+accidents+coordinates+labelled+by+the+urban+center
