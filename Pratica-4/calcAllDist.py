@@ -3,18 +3,34 @@
 # # Mateus Pereira
 # Mateus Damaceno
 
-import math
+# import math
 import csv
+import os
 import shutil
 
 #Funções
-def euclDist(obj1 = None, obj2 = None):
-    if (obj1 == None or obj2 == None):
-        return -1
-    
-    # acum = 0
+def euclDist(obj1 = None, obj2 = None): #Calcula a distância euclidiana entre dois objetos. Presume-se que sejam dois iterators com valores que sejam floats ou que possam ser transformados em. Caso algum erro seja encontrado, valor -1.0 é retornado.
+    if (obj1 == None or obj2 == None or obj1 == [] or obj2 == []):
+        print('\nErro! Algum dos objetos é nulo ou vazio. Retornando valor de erro (-1.0)…\n')
+        return -1.0
+        print()
+    if (obj1 == obj2):
+        return 0.0
+    try:
+        dist = 0
+        for i in range(len(obj1)):
+            dist +=  (float(obj1[i]) - float(obj2[i]))**2
+        dist = dist**0.5
+        return dist
+    except Exception as e:
+        print('\nErro: ' + str(e) + '\n')
+        print(f'Cálculo da distância entre o objeto {obj1} e o objeto {obj2} falhou. Retornando valor de erro (-1.0)…\n')
+        return -1.0
 
-    
+def rmDupes(list_=[]):  #Remove valores duplicados de listas
+    if(list_ == [] or list_ == None):
+        return []
+    return list(dict.fromkeys(list_))
 
 ### Variáveis globais
 
@@ -48,10 +64,10 @@ while True:
     colDist = input('\nInsira as colunas que representam as variáveis a serem consideradas para o cálculo de distância, separadas por espaços e iniciando em um. Apenas aperte enter para usar todas as colunas. (Por exemplo, se as variáveis relevantes forem as da 1ª, 3ª e 6ª colunas, bastaria inserir "1 3 6", sem as aspas): ').strip().split()
     if (colDist ==  []):
         colDist = list(range(len(next(csvFile)))) #Cria uma lista de 0 até o número de colunas - 1
-        file.seek(0)    #Voltando a leitura do arquivo para o começo…
+        file.seek(0)   #Voltando a leitura do arquivo para o começo…
         break
     try:
-        colDist = list(map(lambda x: int(x), colDist))
+        colDist = rmDupes(list(map(lambda x: int(x), colDist)))
         break
     except Exception as e:
         print('\nErro: ' + str(e) + '\nInsira um conjunto de colunas válido!')
@@ -72,16 +88,42 @@ while True:
 
 shutil.copy(filePath, './temp.csv') #Copiando o arquivo para um segundo arquivo auxiliar
 fileAux = open('./temp.csv', 'r', encoding='utf-8')
-csvFileAux = csv.reader(file, delimiter=separator)
+csvFileAux = csv.reader(fileAux, delimiter=separator)
+fileDists = open('./Distâncias.csv', 'w', encoding='utf-8')
+
+file.seek(0)
+fileAux.seek(0)
+
+i = 0
+j = 0
 
 for row in csvFile:
-    for row2 in csvFileAux:
-        euclDist(row, row2)
-        #print(str(row) + '    ' + str(row2))
+    if (ignore1stLine and i == 0):
+        pass
+    else:
+        rowRelevant = []
+        strToWrite = ''
+        for index in colDist:
+            rowRelevant.append(row[index])
+        for row2 in csvFileAux:
+            if (ignore1stLine and j == 0):
+                pass
+            else:
+                rowRelevant2 = []
+                for index in colDist:
+                    rowRelevant2.append(row2[index])
+                # print(euclDist(rowRelevant, rowRelevant2))
+                strToWrite += str(euclDist(rowRelevant, rowRelevant2)) + ', '
+            j += 1
+    fileDists.write(strToWrite[:-2] + '\n')
+    i += 1
 
-file.seek(0)    #Resetando a leitura do arquivo para o começo…
+# file.seek(0)    #Resetando a leitura do arquivo para o começo…
 
-
+file.close()
+fileAux.close()
+if os.path.exists('./temp.csv'):
+    os.remove('./temp.csv')
 
 # i = 1
 # while True:
