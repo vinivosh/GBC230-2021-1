@@ -5,18 +5,28 @@
 
 import math
 import csv
+import shutil
 
-# # fileName = './Pratica-4/urbanGB.all/urbanGB.txt'
+#Funções
+def euclDist(obj1 = None, obj2 = None):
+    if (obj1 == None or obj2 == None):
+        return -1
+    
+    # acum = 0
+
+    
+
+### Variáveis globais
+
+# # filePath = './urbanGB.all/urbanGB.txt'
 # # separator = ','
 # # colDist = [0, 1]
 # ignore1stLine = False
 
 while True:
-    fileName = input('Insira o nome do arquivo: ')
-    print('[DEBUG] fileName =', fileName)
+    filePath = input('Insira o nome do arquivo: ')
     try:
-        file = open(fileName, 'r', encoding='utf-8')
-        print('[DEBUG] file =', file)
+        file = open(filePath, 'r', encoding='utf-8')
         break
     except Exception as e:
         print('\nErro: ' + str(e) + '\nTente novamente! Obs.: se o arquivo não estiver na mesma pasta deste script, use um caminho relativo ou absoluto\n')
@@ -36,9 +46,7 @@ while True:
 
 while True:
     colDist = input('\nInsira as colunas que representam as variáveis a serem consideradas para o cálculo de distância, separadas por espaços e iniciando em um. Apenas aperte enter para usar todas as colunas. (Por exemplo, se as variáveis relevantes forem as da 1ª, 3ª e 6ª colunas, bastaria inserir "1 3 6", sem as aspas): ').strip().split()
-    print('[DEBUG] colDist = ', colDist)
     if (colDist ==  []):
-        print('[DEBUG] Vazio inserido… usando todas as colunas…')
         colDist = list(range(len(next(csvFile)))) #Cria uma lista de 0 até o número de colunas - 1
         file.seek(0)    #Voltando a leitura do arquivo para o começo…
         break
@@ -48,12 +56,31 @@ while True:
     except Exception as e:
         print('\nErro: ' + str(e) + '\nInsira um conjunto de colunas válido!')
 
-# while True:
-#     missingChar = input('Insira o caractere que representa um valor ausente (apenas aperte enter para considerar uma célula vazia como um valor ausente): ')
-#     if (len(missingChar) > 1):
-#         print('\nFazor inserir nenhum ou apenas um caractere!\n')
-#     else:
-#         break
+while True:
+    answer = input('\nA primeira linha possui nome das variáveis? (S)im ou (N)ão? (Enter para selecionar a opção padrão, que é não): ').strip().upper()
+    if (answer == ''):
+        ignore1stLine = False
+        break
+    elif (answer in ['S', 'SIM', 'Y', 'YES']):
+        ignore1stLine = True
+        break
+    elif (answer in ['N', 'NÃO', 'NAO', 'NO']):
+        ignore1stLine = False
+        break
+    else:
+        print('\nFazor inserir uma resposta válida!\n')
+
+shutil.copy(filePath, './temp.csv') #Copiando o arquivo para um segundo arquivo auxiliar
+fileAux = open('./temp.csv', 'r', encoding='utf-8')
+csvFileAux = csv.reader(file, delimiter=separator)
+
+for row in csvFile:
+    for row2 in csvFileAux:
+        euclDist(row, row2)
+        #print(str(row) + '    ' + str(row2))
+
+file.seek(0)    #Resetando a leitura do arquivo para o começo…
+
 
 
 # i = 1
@@ -111,12 +138,12 @@ while True:
 
 # # print(f'[DEBUG] Média final = {avg}')
 
-# # print(f'[DEBUG] Filmename - extensão = {fileName[0:-4]}')
+# # print(f'[DEBUG] Filmename - extensão = {filePath[0:-4]}')
 
 # print('\nIniciando criação do novo arquivo…\n')
 
 # try:
-#     newFile = open((fileName[0:-4]+'_novo.csv'), 'w+', newline='', encoding='utf-8')
+#     newFile = open((filePath[0:-4]+'_novo.csv'), 'w+', newline='', encoding='utf-8')
 # except Exception as e:
 #     print(f'\nErro, impossível criar novo arquivo: {e}\n')
 #     exit()
