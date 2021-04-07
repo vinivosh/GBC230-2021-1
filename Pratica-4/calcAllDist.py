@@ -13,7 +13,6 @@ def euclDist(obj1 = None, obj2 = None): #Calcula a distância euclidiana entre d
     if (obj1 == None or obj2 == None or obj1 == [] or obj2 == []):
         print('\nErro! Algum dos objetos é nulo ou vazio. Retornando valor de erro (-1.0)…\n')
         return -1.0
-        print()
     if (obj1 == obj2):
         return 0.0
     try:
@@ -40,7 +39,7 @@ def rmDupes(list_=[]):  #Remove valores duplicados de listas
 # ignore1stLine = False
 # truncateLine = -1
 
-while True:
+while True: #Obtendo arquivo de entrada
     filePath = input('Insira o nome do arquivo: ')
     try:
         file = open(filePath, 'r', encoding='utf-8')
@@ -48,7 +47,7 @@ while True:
     except Exception as e:
         print('\nErro: ' + str(e) + '\nTente novamente! Obs.: se o arquivo não estiver na mesma pasta deste script, use um caminho relativo ou absoluto\n')
 
-while True:
+while True: #Obtendo o caractere separador
     try:
         separator = input('\nInsira o caractere separador do arquivo (apenas aperte enter para usar o padrão de vírgulas): ').strip()
         if separator == '':
@@ -61,7 +60,7 @@ while True:
     except Exception:
         print('\nFavor insira um separador de exatamente um caractere!\n')
 
-while True:
+while True: #Obtendo as variáveis relevantes para o cálcul ode distância
     colDist = input('\nInsira as colunas que representam as variáveis a serem consideradas para o cálculo de distância, separadas por espaços e iniciando em um. Apenas aperte enter para usar todas as colunas. (Por exemplo, se as variáveis relevantes forem as da 1ª, 3ª e 6ª colunas, bastaria inserir "1 3 6", sem as aspas): ').strip().split()
     if (colDist ==  []):
         colDist = list(range(len(next(csvFile)))) #Cria uma lista de 0 até o número de colunas - 1
@@ -73,7 +72,7 @@ while True:
     except Exception as e:
         print('\nErro: ' + str(e) + '\nInsira um conjunto de colunas válido!')
 
-while True:
+while True: #Ignorar primeira linha?
     answer = input('\nA primeira linha possui nome das variáveis? (S)im ou (N)ão? (Enter para selecionar a opção padrão, que é não): ').strip().upper()
     if (answer == ''):
         ignore1stLine = False
@@ -85,7 +84,26 @@ while True:
         ignore1stLine = False
         break
     else:
-        print('\nFazor inserir uma resposta válida!\n')         
+        print('\nFazor inserir uma resposta válida!\n')
+
+file.seek(0)
+lenCsvFile = len(list(csvFile))
+
+while True: #Truncamento do arquivo
+    answer = input('\nDeseja truncar o arquivo? Isto é recomendado para arquivos enormes. Se sim, insira até qual linha deseja que o arquivo seja lido. Se não, apenas pressione enter: ')    
+    try:
+        if (answer == ''):
+            truncateLine = -1
+            break
+        elif (int(answer) > 0 and int(answer) <= lenCsvFile):
+            truncateLine = int(answer)-1
+            break
+        else:
+            raise(ValueError)
+    except Exception as e:
+        print(f'\nErro: {e}')
+        print(f'Insira um número inteiro entre 1 e {lenCsvFile}!')
+file.seek(0)   
 
 print('\nCriando arquivo temporário temp.csv…')
 shutil.copy(filePath, './temp.csv') #Copiando o arquivo para um segundo arquivo auxiliar
@@ -101,19 +119,22 @@ print('\nCalculando todas as distâncias…')
 print('Isso pode demorar muito! N² distâncias serão calculadas, onde N é a quantidade de objetos na base de dados.\n')
 
 i = 0
-j = 0
-
-for row in csvFile:
+for row in csvFile: #Caluclando as distâncias…
     if (ignore1stLine and i == 0):
         pass
+    elif (i > truncateLine):
+        break
     else:
         rowRelevant = []
         lineToWrite = ''
         for index in colDist:
             rowRelevant.append(row[index])
+        j = 0
         for row2 in csvFileAux:
             if (ignore1stLine and j == 0):
                 pass
+            elif (j > truncateLine):
+                break
             else:
                 rowRelevant2 = []
                 for index in colDist:
@@ -126,7 +147,7 @@ for row in csvFile:
     fileAux.seek(0) #Voltando a leitura do arquivo auxiliar para o início
     i += 1
 
-print('\nConcluído, finalmente! Os resultas se encontram no arquivo Distâncias.csv, localizado na mesma pasta de onde este script foi rodado.')
+print('\nConcluído, finalmente! Os resultados se encontram no arquivo Distâncias.csv, localizado na mesma pasta de onde este script foi rodado.')
 
 file.close()
 fileAux.close()
