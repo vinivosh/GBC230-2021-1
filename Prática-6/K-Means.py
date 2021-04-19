@@ -6,7 +6,10 @@
 # import math
 import csv
 import os
-import shutil
+import random
+# import shutil
+
+random.seed()   #Seedando a função random com a hora do sistema
 
 #Funções
 
@@ -34,11 +37,12 @@ def rmDupes(_list=[]):  #Remove valores duplicados de listas
 
 ### Variáveis globais
 
-# # filePath = './urbanGB.all/urbanGB.txt'
-# # separator = ','
-# # colDist = [0, 1]
+# filePath = './iris.data'
+# k = 3
+# separator = ','
+# colDist = [0, 1, 2 ,3]
 # ignore1stLine = False
-# truncateLine = -1
+# truncateLine = len(list(csvFile))-1
 
 while True: #Obtendo arquivo de entrada
     filePath = input('Insira o nome do arquivo: ')
@@ -47,6 +51,19 @@ while True: #Obtendo arquivo de entrada
         break
     except Exception as e:
         print('\nErro: ' + str(e) + '\nTente novamente! Obs.: se o arquivo não estiver na mesma pasta deste script, use um caminho relativo ou absoluto\n')
+
+while True: #Obtendo a quantidade de grupos (k)
+    try:
+        k = input('\nInsira a quantidade de grupos desejado (apenas aperte enter para usar o padrão do Iris Dataset de 3 grupos): ').strip()
+        if k == '':
+            k =  3
+        else:
+            k = int(k)
+            if k <= 0:
+                raise ValueError
+        break
+    except Exception:
+        print('\nFavor inserir um número maior que zero!\n')
 
 while True: #Obtendo o caractere separador
     try:
@@ -64,11 +81,11 @@ while True: #Obtendo o caractere separador
 while True: #Obtendo as variáveis relevantes para o cálculo de distância
     colDist = input('\nInsira as colunas que representam as variáveis a serem consideradas para o cálculo de distância, separadas por espaços e iniciando em um. Apenas aperte enter para usar o padrão para o Iris Dataset. (Por exemplo, se as variáveis relevantes forem as da 1ª, 3ª e 4ª colunas, bastaria inserir "1 3 4", sem as aspas): ').strip().split()
     if (colDist ==  []):
-        colDist = [1, 2, 3, 4] #O padrão do Iris Dataset, todas as 5 colunas, exceto a última.
+        colDist = [0, 1, 2 ,3] #O padrão do Iris Dataset, todas as 5 colunas, exceto a última.
         file.seek(0)   #Voltando a leitura do arquivo para o começo…
         break
     try:
-        colDist = rmDupes(list(map(lambda x: int(x), colDist)))
+        colDist = rmDupes(list(map(lambda x: int(x)-1, colDist)))
         break
     except Exception as e:
         print('\nErro: ' + str(e) + '\nInsira um conjunto de colunas válido!')
@@ -94,7 +111,7 @@ while True: #Truncamento do arquivo
     answer = input('\nDeseja truncar o arquivo? Isto é recomendado para arquivos enormes. Se sim, insira até qual linha deseja que o arquivo seja lido. Se não, apenas pressione enter: ')    
     try:
         if (answer == ''):
-            truncateLine = -1
+            truncateLine = lenCsvFile-1 #Não haverá truncamento do arquivo, ou seja, a linha de "truncamento" é a última linha do arquivo
             break
         elif (int(answer) > 0 and int(answer) <= lenCsvFile):
             truncateLine = int(answer)-1
@@ -104,37 +121,59 @@ while True: #Truncamento do arquivo
     except Exception as e:
         print(f'\nErro: {e}')
         print(f'Insira um número inteiro entre 1 e {lenCsvFile}!')
-file.seek(0)   
+file.seek(0)
 
-# print('\nCriando arquivo temporário temp.csv…')
-# shutil.copy(filePath, './temp.csv') #Copiando o arquivo para um segundo arquivo auxiliar
-print('\nCriando arquivo ResultadosKMeans.csv que terá os resultados…')
-# fileAux = open('./temp.csv', 'r', encoding='utf-8')
-# csvFileAux = csv.reader(fileAux, delimiter=separator)
-fileDists = open('./ResultadosKMeans.csv', 'w', encoding='utf-8')
+# csvFileArray = []  #Criando uma lista que contém todas rows do csv. Isto carregará o arquivo inteiro na memória, mas vai acabar sendo computacionalmente mais barato quando precisarmos 
+# for row in csvFile:
+#     csvFileArray.append(row)
+
+print('\nCriando arquivo ResultadosKMeans.csv que terá os agrupamentos…')
+fileResults = open('./ResultadosKMeans.csv', 'w', encoding='utf-8')
 
 file.seek(0)
-# fileAux.seek(0)
 
-print('\nCalculando todas as distâncias…')
-print('Isso pode demorar muito! N² distâncias serão calculadas, onde N é a quantidade de objetos na base de dados menos aqueles após o truncamento.\n')
+print(f'\nIniciando k-means com {k} grupos…')
+centroids = []
+print(f'Selecionando {k} centróides aleatoriamente…')
+if ignore1stLine:
+    start = 1
+else:
+    start = 0
+for i in range(k):  #Selecionando k centroides aleatoriamente…
+    centroid = random.randrange(start, truncateLine + 1)    #Gera um inteiro aleatório entre a primeira linha relevante do csv e a última linha a se considerar
+    j = 0
+    while j <= truncateLine:    #Enquanto estivermos entre 0 e a última linha a se considerar…
+        row = next(csvFile)
+        if j == centroid:   #Se chegamos na linha correspondente ao número aleatório gerado…
+            centroids.append(row)   #Adicionamos este objeto como um centroide inicial
+            break
+        j += 1
+    file.seek(0)    #Voltando o arquivo para o começo
 
-i = 0
-for row in csvFile: #Caluclando as distâncias…
-    if (ignore1stLine and i == 0):
-        pass
-    elif (i > truncateLine):
-        break
-    else:
-        rowRelevant = []
-        lineToWrite = ''
-        for index in colDist:
-            rowRelevant.append(row[index])
-        j = 0
-    fileDists.write(f'{lineToWrite[:-2]}\n')
-    # fileDists.write('\n')
-    # fileAux.seek(0) #Voltando a leitura do arquivo auxiliar para o início
+print('Centroides selecionados!')
+i = 1
+for centroid in centroids:
+    print(f'Centroide #{i}: {centroid}')
     i += 1
+
+for i in range(1,100 + 1):
+    # print(f'\nIteração #{i}\n')
+    pass
+
+# i = 0
+# for row in csvFile: #Caluclando as distâncias…
+#     if (ignore1stLine and i == 0):
+#         pass
+#     elif (i > truncateLine):
+#         break
+#     else:
+#         rowRelevant = []
+#         lineToWrite = ''
+#         for index in colDist:
+#             rowRelevant.append(row[index])
+#         j = 0
+#     fileResults.write(f'{lineToWrite[:-2]}\n')
+#     i += 1
 
 print('\nConcluído, finalmente! Os resultados se encontram no arquivo ResultadosKMeans.csv, localizado na mesma pasta de onde este script foi rodado.')
 
