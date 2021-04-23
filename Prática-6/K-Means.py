@@ -7,6 +7,7 @@
 import csv
 import os
 import random
+import matplotlib.pyplot as plt
 # import shutil
 
 random.seed()   #Seedando a função random com a hora do sistema
@@ -145,6 +146,9 @@ for i in range(k):  #Selecionando k centróides aleatoriamente…
     while j <= truncateLine:    #Enquanto estivermos entre 0 e a última linha a se considerar…
         row = next(csvFile)
         if j == centroid:   #Se chegamos na linha correspondente ao número aleatório gerado…
+            if (row == []):
+                i -= 1
+                break
             centroids.append(row)   #Adicionamos este objeto como um centróide inicial
             break
         j += 1
@@ -212,15 +216,13 @@ for iter in range(1,100 + 1):
         for data in rowGroups:
             row = next(csvFile)
             if (data[1] == cluster):
-                j = 0
-                for col in colDist:
+                for j, col in enumerate(colDist):
                     clusterAculumator[j] += float(row[col])
-                    j += 1
                 clusterSize += 1
 
-        for col in colDist:
+        for j, col in enumerate(colDist):
             if clusterSize != 0:
-                clusterAculumator[col] /= clusterSize
+                clusterAculumator[j] /= clusterSize
 
         centroids.append(clusterAculumator)
         file.seek(0)
@@ -247,7 +249,14 @@ for iter in range(1,100 + 1):
         rowGroups.append([i, dist.index(min(dist))])
         i += 1
 
-    fileResults.write(f'rowGroups = {rowGroups}\n')
+    # fileResults.write(f'rowGroups = {rowGroups}\n')
+
+file.seek(0)
+i = 0
+for row in csvFile:
+    if (row != []):
+        fileResults.write(f'{row},{rowGroups[i][1]}\n') 
+    i += 1
 
 print('\nConcluído, finalmente! Os resultados se encontram no arquivo ResultadosKMeans.csv, localizado na mesma pasta de onde este script foi rodado.')
 
