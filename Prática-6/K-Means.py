@@ -79,7 +79,7 @@ while True: #Obtendo o caractere separador
         print('\nFavor insira um separador de exatamente um caractere!\n')
 
 while True: #Obtendo as variáveis relevantes para o cálculo de distância
-    colDist = input('\nInsira as colunas que representam as variáveis a serem consideradas para o cálculo de distância, separadas por espaços e iniciando em um. Apenas aperte enter para usar o padrão para o Iris Dataset. (Por exemplo, se as variáveis relevantes forem as da 1ª, 3ª e 4ª colunas, bastaria inserir "1 3 4", sem as aspas): ').strip().split()
+    colDist = input('\nInsira as colunas que representam as variáveis a serem consideradas para o cálculo de distância, separadas por espaços e iniciando em um. Por exemplo, se as variáveis relevantes forem as da 1ª, 3ª e 4ª colunas, bastaria inserir "1 3 4", sem as aspas. (Apenas aperte enter para usar o padrão para o Iris Dataset.): ').strip().split()
     if (colDist ==  []):
         colDist = [0, 1, 2 ,3] #O padrão do Iris Dataset, todas as 5 colunas, exceto a última.
         file.seek(0)   #Voltando a leitura do arquivo para o começo…
@@ -139,22 +139,48 @@ if ignore1stLine:
     start = 1
 else:
     start = 0
-for i in range(k):  #Selecionando k centroides aleatoriamente…
+for i in range(k):  #Selecionando k centróides aleatoriamente…
     centroid = random.randrange(start, truncateLine + 1)    #Gera um inteiro aleatório entre a primeira linha relevante do csv e a última linha a se considerar
     j = 0
     while j <= truncateLine:    #Enquanto estivermos entre 0 e a última linha a se considerar…
         row = next(csvFile)
         if j == centroid:   #Se chegamos na linha correspondente ao número aleatório gerado…
-            centroids.append(row)   #Adicionamos este objeto como um centroide inicial
+            centroids.append(row)   #Adicionamos este objeto como um centróide inicial
             break
         j += 1
     file.seek(0)    #Voltando o arquivo para o começo
 
-print('Centroides selecionados!')
+print('centróides selecionados! São eles:\n')
 i = 1
 for centroid in centroids:
-    print(f'Centroide #{i}: {centroid}')
+    print(f'centróide #{i}: {centroid}')
     i += 1
+
+i = 0
+rowGroups = []  #Vetor com a informação de qual grupo cada datapoint pertence à. O grupo é o index do centróide correspondente em "centroids".
+for row in csvFile: #Para cada datapoint…
+    if i > truncateLine:   #Se chegamos na última linha a ser considerada, parar após ela
+        break
+    if (ignore1stLine == True) and (i == 0):    #Ignorar a primeira linha se ignore1stLine for True.
+        i += 1
+        continue
+    if (len(row) == 0): #Se estivermos numa linha cazia, ignorá-la…
+        i += 1
+        continue
+    dist = []   #Vetor de distâncias
+    for centroid in centroids:  #Para cada centróide…
+        rowRelevant = []
+        centroidRelevant = []
+        for var in colDist: #Considerar apenas as colunas de index especificados em colDist para calcular a distância…
+            rowRelevant.append(row[var])
+            centroidRelevant.append(centroid[var])
+        dist.append(euclDist(rowRelevant, centroidRelevant))
+
+    #Adiciona ao vetor rowGroups uma lista, onde o primeiro elemento é o número da linha do datapoint atual, e o segundo é o index (na lista "centroids") correspondente ao centróide mais próximo ao datapoint
+    rowGroups.append([i, dist.index(min(dist))])
+    i += 1
+
+file.seek(0)    #Voltando o arquivo para o começo
 
 for i in range(1,100 + 1):
     # print(f'\nIteração #{i}\n')
