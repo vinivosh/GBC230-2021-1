@@ -150,6 +150,9 @@ for i in range(k):  #Selecionando k centróides aleatoriamente…
         j += 1
     file.seek(0)    #Voltando o arquivo para o começo
 
+#DEBUG
+# centroids = [[5.1,3.5,1.4,0.2], [4.9,3.0,1.4,0.2], [4.7,3.2,1.3,0.2]]
+
 print('centróides selecionados! São eles:\n')
 i = 1
 for centroid in centroids:
@@ -182,24 +185,69 @@ for row in csvFile: #Para cada datapoint…
 
 file.seek(0)    #Voltando o arquivo para o começo
 
-for i in range(1,100 + 1):
-    # print(f'\nIteração #{i}\n')
-    pass
+#Parte do Mateus Pereira
+
+# 1 a 100 - ok
+# recalcular K centroides de cada classe (colDist) - ok
+  # Somatoria de cada coluna, divide por N, temos um novo centroide - ok
+# atualiza os centroids[]
+# calcular distancia de cada row, para clusterizar
+# reescrever rowGroups
+
+# append informacoes no arquivo
+# plotar grafico
 
 # i = 0
-# for row in csvFile: #Caluclando as distâncias…
-#     if (ignore1stLine and i == 0):
-#         pass
-#     elif (i > truncateLine):
-#         break
-#     else:
-#         rowRelevant = []
-#         lineToWrite = ''
-#         for index in colDist:
-#             rowRelevant.append(row[index])
-#         j = 0
-#     fileResults.write(f'{lineToWrite[:-2]}\n')
-#     i += 1
+for iter in range(1,100 + 1):
+    file.seek(0)
+    print(f'\nIteração #{iter}\n')
+
+    centroids = []
+    for cluster in range(k):
+        clusterAculumator = []
+        for col in colDist:
+            clusterAculumator.append(0)
+
+        clusterSize = 0
+        for data in rowGroups:
+            row = next(csvFile)
+            if (data[1] == cluster):
+                j = 0
+                for col in colDist:
+                    clusterAculumator[j] += float(row[col])
+                    j += 1
+                clusterSize += 1
+
+        for col in colDist:
+            if clusterSize != 0:
+                clusterAculumator[col] /= clusterSize
+
+        centroids.append(clusterAculumator)
+        file.seek(0)
+
+    i = 0
+    rowGroups = []  #Vetor com a informação de qual grupo cada datapoint pertence à. O grupo é o index do centróide correspondente em "centroids".
+    for row in csvFile: #Para cada datapoint…
+        if i > truncateLine:   #Se chegamos na última linha a ser considerada, parar após ela
+            break
+        if (ignore1stLine == True) and (i == 0):    #Ignorar a primeira linha se ignore1stLine for True.
+            i += 1
+            continue
+        if (len(row) == 0): #Se estivermos numa linha vazia, ignorá-la…
+            i += 1
+            continue
+        dist = []   #Vetor de distâncias
+        for centroid in centroids:  #Para cada centróide…
+            rowRelevant = []
+            for var in colDist: #Considerar apenas as colunas de index especificados em colDist para calcular a distância…
+                rowRelevant.append(row[var])
+            dist.append(euclDist(rowRelevant, centroid))
+
+        #Adiciona ao vetor rowGroups uma lista, onde o primeiro elemento é o número da linha do datapoint atual, e o segundo é o index (na lista "centroids") correspondente ao centróide mais próximo ao datapoint
+        rowGroups.append([i, dist.index(min(dist))])
+        i += 1
+
+    fileResults.write(f'rowGroups = {rowGroups}\n')
 
 print('\nConcluído, finalmente! Os resultados se encontram no arquivo ResultadosKMeans.csv, localizado na mesma pasta de onde este script foi rodado.')
 
