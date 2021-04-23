@@ -3,12 +3,9 @@
 # # Mateus Pereira
 # Mateus Damaceno
 
-# import math
 import csv
 import os
 import random
-import matplotlib.pyplot as plt
-# import shutil
 
 random.seed()   #Seedando a função random com a hora do sistema
 
@@ -124,10 +121,6 @@ while True: #Truncamento do arquivo
         print(f'Insira um número inteiro entre 1 e {lenCsvFile}!')
 file.seek(0)
 
-# csvFileArray = []  #Criando uma lista que contém todas rows do csv. Isto carregará o arquivo inteiro na memória, mas vai acabar sendo computacionalmente mais barato quando precisarmos 
-# for row in csvFile:
-#     csvFileArray.append(row)
-
 print('\nCriando arquivo ResultadosKMeans.csv que terá os agrupamentos…')
 fileResults = open('./ResultadosKMeans.csv', 'w', encoding='utf-8')
 
@@ -191,16 +184,6 @@ file.seek(0)    #Voltando o arquivo para o começo
 
 #Parte do Mateus Pereira
 
-# 1 a 100 - ok
-# recalcular K centroides de cada classe (colDist) - ok
-  # Somatoria de cada coluna, divide por N, temos um novo centroide - ok
-# atualiza os centroids[]
-# calcular distancia de cada row, para clusterizar
-# reescrever rowGroups
-
-# append informacoes no arquivo
-# plotar grafico
-
 # i = 0
 for iter in range(1,100 + 1):
     file.seek(0)
@@ -261,9 +244,5 @@ for row in csvFile:
 print('\nConcluído, finalmente! Os resultados se encontram no arquivo ResultadosKMeans.csv, localizado na mesma pasta de onde este script foi rodado.')
 
 file.close()
-# fileAux.close()
-# if os.path.exists('./temp.csv'):
-#     print('\nApagando arquivo temporário…')
-#     os.remove('./temp.csv')
 
 print('\nFinalizando programa…\n\n')
