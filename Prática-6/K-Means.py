@@ -204,7 +204,7 @@ file.seek(0)    #Voltando o arquivo para o começo
 # i = 0
 for iter in range(1,100 + 1):
     file.seek(0)
-    print(f'\nIteração #{iter}\n')
+    print(f'Iteração #{iter}…')
 
     centroids = []
     for cluster in range(k):
