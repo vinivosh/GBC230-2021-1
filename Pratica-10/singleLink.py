@@ -146,7 +146,7 @@ class DistMatrix:
                 if (row2 == [] or row2 == '' or row2 is None): continue # Se a row2 for vazia, pule-a
 
                 # Adiciona na matriz de distâncias uma lista com quatro elementos, onde [0] = a lista 
-                line.append(euclDist(relevant(row1, colDist), relevant(row2, colDist)))                
+                line.append(euclDist(relevant(row1, colDist), relevant(row2, colDist)))
             self.fileAux.seek(0) # Reseta o arquivo aux para o início
 
             self.matrix.append(line)
@@ -179,7 +179,7 @@ class DistMatrix:
             return self.matrix[i][j-(i+1)]
 
     # Função auxiliar que devolve uma lista contendo os dois índices da matriz de distâncias onde está a menor distância dela. 
-    def _MinDist(self):
+    def _MinDistElement(self):
         smallest = inf # Inicia a "menor distância" como infinito
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix)):
@@ -205,7 +205,48 @@ class DistMatrix:
 
     # Executa um passo do algoritmo single link, encontrando a menor distância na matriz de distâncias, unindo os elementos ou sub-grupos da linha e coluna correspondente, e atualizando a matrix (e colDist) para refletir a nova matriz de distâncias gerada. Returna True se sucesso e False se falha (quando não há outro passo a ser realizado, por exemplo)
     def GroupUp(self):
-        return True    
+        if len(self.matrix) <= 2: return False
+
+        # Encontrando a menor distância…
+        minDistElement = self._MinDistElement()
+        iMinElement = minDistElement[0]
+        jMinElement = minDistElement[1]
+
+        # Atualizando colDesc
+        newColDesc = []
+        for i, col in enumerate(self.colDesc):
+            if i == iMinElement: # Se encontramos o elemento ou sub-grupo representado pela linha iMinElement, copiamos ele e juntamos ao mesmo o elemento (ou todos do sub-grupo) representado pela linha jMinElement
+                newCol = col
+                for element in self.colDesc[jMinElement]:
+                    newCol.append(element)
+
+                newColDesc.append(newCol)
+            elif i == jMinElement: continue # Pule o elemento ou sub-grupo representado pela coluna jMinElement (pois unimos este com o representado pela linha iMinElement)
+            else: newColDesc.append(col) # Se for outro elemento que nada tem a ver com iMinElement e jMinElement, apenas copie-o para a newColDesc
+
+        self.colDesc = newColDesc # Substituímos a colDesc antiga pela nova
+
+
+        # Atualizando a matriz de distâncias em si
+        newMatrix = []
+        for i in range(len(self.matrix)):
+            line = []
+            for j in range(len(self.matrix)):
+                if i >= j: continue # Explorando apenas a diagonal superior
+                if i == iMinElement:
+                    if j == jMinElement: continue # Pula a distância dos dois elementos que foram unidos
+                    else: # Recualcula a distância
+                        pass # recalcula dist
+                elif j == jMinElement:
+                    pass # Recualcula dist a
+                else:
+                    line.append(self._GetElement(i,j)) # Se for um elemento que nada tem a ver com iMinElement e jMinElement, apenas copie o valor da matriz de distâncias
+                    
+            newMatrix.append(line)
+
+        self.matrix = newMatrix # Substituindo a matriz de distâncias antiga pela nova
+
+        return True
 
 print('\nCriando arquivo ResultadosSingleLink.csv que terá os grupos…')
 fileResults = open('./ResultadosSingleLink.csv', 'w', encoding='utf-8')
@@ -229,7 +270,7 @@ distMatrix = DistMatrix()
 #     for j in range(len(distMatrix.matrix)):
 #         print(f'matrix.[{i}][{j}] = {distMatrix._GetElement(i,j)}')
 
-# minDist = distMatrix._MinDist()
+# minDist = distMatrix._MinDistElement()
 # print(f'\n[DEBUG] Distância mínima = matrix.{minDist} = {distMatrix._GetElement(minDist[0], minDist[1])}')
 # print(f'\n[DEBUG] Grupos = {distMatrix.StringForCsv()}')
 
