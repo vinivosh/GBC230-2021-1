@@ -122,6 +122,91 @@ while True: #Truncamento do arquivo
         print(f'Insira um número inteiro entre 1 e {lenCsvFile}!')
 # file.seek(0)
 
+# Classe da matriz de distâncias
+class DistMatrix:
+    def __init__(self, path=filePath, sep=separator, colDist=colDist, ignore1stLine=ignore1stLine, truncateLine=truncateLine):
+        self.colDesc = [] # Descrição de quais elementos estão sendo representados por cada coluna (e linha também). Cada colDesc[i] dessa lista é uma outra lista contendo os elementos que a coluna (e/ou linha) representa; isto é, representa os grupos criados pelo Single Link na etapa atual. Cada elemento é representado por um dictionary, com duas chaves: 'line', que indica a linha do arquivo do dataset que corresponde contem esse elemento; e 'element', que é uma cópia de tal linha, descrevendo o elemento.
+        self.matrix = [] # As distâncias em si, entre cada elemento ou sub-conjunto
+
+        self.file = open(path, 'r', encoding='utf-8')
+        self.csvFile = csv.reader(self.file, delimiter=sep)
+        self.fileAux = open(path, 'r', encoding='utf-8')
+        self.csvFileAux = csv.reader(self.fileAux, delimiter=sep)
+
+        # Preenchendo a matriz de distâncias inicial…
+        for i, row1 in enumerate(self.csvFile): # Para cada datapoint…
+            if ignore1stLine and i == 0: continue
+            if i == truncateLine: break
+
+            line = []
+            for j, row2 in enumerate(self.csvFileAux):
+                if ignore1stLine and j == 0: continue
+                if j == truncateLine: break
+                if i >= j: continue # Construindo apenas a diagonal superior da matriz para economizar espaço. A diagonal principal sempre terá distância zero, e a diagonal inferior é o espelho da superior, então ambas não precisam ser guardadas.
+                if (row2 == [] or row2 == '' or row2 is None): continue # Se a row2 for vazia, pule-a
+
+                # Adiciona na matriz de distâncias uma lista com quatro elementos, onde [0] = a lista 
+                line.append(euclDist(relevant(row1, colDist), relevant(row2, colDist)))                
+            self.fileAux.seek(0) # Reseta o arquivo aux para o início
+
+            self.matrix.append(line)
+
+        self.file.seek(0)
+
+        # Preenchendo colDist para descrever o que cada coluna (e linha) da matriz de distâncias representa (isto é, os grupos formados pelo algoritmo, que inicialmente será um por elemento, obviamente).
+        for i, row in enumerate(self.csvFile): # Para cada datapoint…
+            if ignore1stLine and i == 0: continue
+            if i == truncateLine: break
+            if (row == [] or row == '' or row is None): continue            
+            
+            col = [{'line': i+1, 'element': row}]
+            self.colDesc.append(col)
+        self.file.seek(0)
+
+    # Função auxiliar que devolve a distância entre um elemento ou grupo de elementos, e outro.
+    def _CalcDist(self, col1=None, col2=None):
+        pass
+
+    # Função auxiliar que "traduz" a matriz econômica (só com a diagonal superior salva) para a sintaxe de uma matriz normal. Retorna o conteúdo em tal índice (traduzido) da matriz.
+    def _GetElement(self, i=0, j=0):
+        if i==j:
+            return inf # Valor infinito é retornado para que nunca sejam consideradas as distâncias de um elemento ou sub-grupo consigo mesmo, que seria sempre zero.
+        elif i >= len(self.matrix) or j >= len(self.matrix):
+            return None # Se procurar um index maior que o tamanho da matriz, retorna erro!
+        elif (i > j):
+            return self.matrix[j][i-(j+1)]
+        else:
+            return self.matrix[i][j-(i+1)]
+
+    # Função auxiliar que devolve uma lista contendo os dois índices da matriz de distâncias onde está a menor distância dela. 
+    def _MinDist(self):
+        smallest = inf # Inicia a "menor distância" como infinito
+        for i in range(len(self.matrix)):
+            for j in range(len(self.matrix)):
+                if i >= j: continue # Pula a diagonal principal e inferior
+                dist = self._GetElement(i,j)
+                if not dist: continue # Se algum erro, pula
+                if dist < smallest:
+                    smallest = dist
+                    answer = [i, j]
+
+        return answer
+    
+    # Função que retorna uma string com os grupos da iteração atual do single link
+    def StringForCsv(self):
+        answer = ''
+        for group in self.colDesc:
+            answer += '{'
+            for item in group:
+                answer += str(item['element']) + ','
+            answer = answer[:-1] + '},'# Retirando a última vírgula e adicionando o fim do grupo + uma vírgula
+        
+        return answer[:-1] # Retira a última vírgula, pois chegou no último grupo
+
+    # Executa um passo do algoritmo single link, encontrando a menor distância na matriz de distâncias, unindo os elementos ou sub-grupos da linha e coluna correspondente, e atualizando a matrix (e colDist) para refletir a nova matriz de distâncias gerada. Returna True se sucesso e False se falha (quando não há outro passo a ser realizado, por exemplo)
+    def GroupUp(self):
+        return True    
+
 print('\nCriando arquivo ResultadosSingleLink.csv que terá os grupos…')
 fileResults = open('./ResultadosSingleLink.csv', 'w', encoding='utf-8')
 
@@ -134,22 +219,21 @@ file.seek(0)
 fileAux.seek(0)
 
 print('\nIniciando single link…')
-distMatrix = [] # distMatrix sempre terá n(n-1)/2 elementos, onde n é a quantidade de datapoints no dataset
+distMatrix = DistMatrix()
 
-for i, row1 in enumerate(csvFile): # Para cada datapoint…
-  if ignore1stLine and i == 0: continue
-  if i == truncateLine: break
+# print(f'\n[DEBUG] Tamanho da distMatrix = {len(distMatrix)}')
+# print(f'\n[DEBUG] colDesc = {distMatrix.colDesc}')
+# print(f'\n[DEBUG] Matriz de distâncias = {distMatrix.matrix}')
 
-  for j, row2 in enumerate(csvFileAux):
-    if ignore1stLine and j == 0: continue
-    if j == truncateLine: break
-    if i >= j: continue # Construindo apenas a diagonal superior da matriz para economizar espaço. A diagonal principal sempre terá distância zero, e a diagonal inferior é o espelho da superior, então ambas não precisam ser guardadas.
-    distMatrix.append(euclDist(relevant(row1, colDist), relevant(row2, colDist)))
-    
-  fileAux.seek(0) # Reseta o arquivo aux para o início
+# for i in range(len(distMatrix.matrix)):
+#     for j in range(len(distMatrix.matrix)):
+#         print(f'matrix.[{i}][{j}] = {distMatrix._GetElement(i,j)}')
 
-# print(str(distMatrix))
-print(f'\n[DEBUG] Tamanho da distMatrix = {len(distMatrix)}')
+# minDist = distMatrix._MinDist()
+# print(f'\n[DEBUG] Distância mínima = matrix.{minDist} = {distMatrix._GetElement(minDist[0], minDist[1])}')
+# print(f'\n[DEBUG] Grupos = {distMatrix.StringForCsv()}')
+
+
 
 # Escrevendo arquivo de resultados…
 # file.seek(0)
